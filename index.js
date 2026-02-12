@@ -305,10 +305,11 @@ const otpGenerator = require("otp-generator");
 const sendOTPEmail = require("./utils/sendEmail");
 
 const app = express();
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true
-}));
+// app.use(cors({
+//   origin: process.env.FRONTEND_URL,
+//   credentials: true
+// }));
+app.use(cors());
 app.use(express.json());
 
 // ================= MongoDB =================
@@ -348,9 +349,10 @@ app.post("/register", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-    
-    res.status(201).json({ token });
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({
+      token,
+      message: "User registered successfully"
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -496,7 +498,7 @@ app.put("/expense/:id", auth, async (req, res) => {
 
 // ================= SERVER =================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => 
+app.listen(PORT, () =>
   console.log("Server running")
 );
 
