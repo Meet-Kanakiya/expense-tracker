@@ -61,12 +61,19 @@ const sendOTPEmail = async (email, otp, type = "login") => {
 
   const isReset = type === "reset";
 
-  await transporter.sendMail({
-    from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: isReset ? "Reset Password OTP" : "Login OTP",
-    html: isReset ? resetTemplate : loginTemplate,
-  });
+  try {
+    await transporter.sendMail({
+      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: isReset ? "Reset Password OTP" : "Login OTP",
+      html: isReset ? resetTemplate : loginTemplate,
+    });
+    console.log("Email sent successfully");
+  } catch (err) {
+    console.error("Email error:", err);
+    throw err;
+  }
+
 };
 
 module.exports = sendOTPEmail;
