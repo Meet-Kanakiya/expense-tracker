@@ -2,7 +2,9 @@ const nodemailer = require("nodemailer");
 
 const sendOTPEmail = async (email, otp, type = "login") => {
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -63,6 +65,7 @@ const sendOTPEmail = async (email, otp, type = "login") => {
 
   try {
     await transporter.sendMail({
+
       from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: isReset ? "Reset Password OTP" : "Login OTP",
