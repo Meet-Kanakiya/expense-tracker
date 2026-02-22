@@ -1,9 +1,8 @@
-const { Resend } = require("resend");
+const sgMail = require("@sendgrid/mail");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendOTPEmail = async (email, otp, type = "login") => {
-  // 🔹 LOGIN OTP TEMPLATE
   const loginTemplate = `
   <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:30px;">
     <div style="max-width:500px; margin:auto; background:white; border-radius:10px; padding:25px;">
@@ -33,7 +32,6 @@ const sendOTPEmail = async (email, otp, type = "login") => {
   </div>
   `;
 
-  // 🔹 RESET OTP TEMPLATE
   const resetTemplate = `
   <div style="font-family: Arial; background:#0f172a; padding:20px;">
     <div style="max-width:400px;margin:auto;background:#020617;
@@ -51,18 +49,19 @@ const sendOTPEmail = async (email, otp, type = "login") => {
 
   const isReset = type === "reset";
 
-  try {
-    await resend.emails.send({
-      from: "onboarding@resend.dev", // default sender (free plan)
-      to: email,
-      subject: isReset ? "Reset Password OTP" : "Login OTP",
-      html: isReset ? resetTemplate : loginTemplate,
-    });
+  const msg = {
+    to: email,
+    from: "smart.todo.system@gmail.com", // must match verified sender
+    subject: isReset ? "Reset Password OTP" : "Login OTP",
+    html: isReset ? resetTemplate : loginTemplate,
+  };
 
-    console.log("✅ Email sent successfully via Resend");
+  try {
+    await sgMail.send(msg);
+    console.log("✅ Email sent successfully via SendGrid");
   } catch (error) {
-    console.error("❌ Resend Email Error:", error);
-    throw error; // important (route handle karega)
+    console.error("❌ SendGrid Error:", error.response?.body || error.message);
+    throw error;
   }
 };
 

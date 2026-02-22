@@ -7,15 +7,14 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.4",
-    "nodemailer": "^7.0.13",
-    "otp-generator": "^4.0.1",
-    "resend": "^6.9.2"
+    "otp-generator": "^4.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
