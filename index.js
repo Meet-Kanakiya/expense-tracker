@@ -306,9 +306,13 @@ const sendOTPEmail = require("./utils/sendEmail");
 
 const app = express();
 // app.use(cors({
-//   origin: process.env.FRONTEND_URL,
+//   origin: [
+//       "https://expense-tracker-system-ten.vercel.app"
+//     ],
+//   methods: ["GET", "POST", "PUT", "DELETE"],
 //   credentials: true
 // }));
+// app.options("*", cors());
 app.use(cors());
 app.use(express.json());
 
