@@ -74,7 +74,7 @@ const sendOTPEmail = async (email, otp, type = "login") => {
     console.log("Email sent successfully");
   } catch (err) {
     console.error("Email error:", err);
-    throw err;
+    return res.status(500).json({ message: err.message });
   }
 
 };
