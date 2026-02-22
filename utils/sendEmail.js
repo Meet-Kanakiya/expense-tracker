@@ -1,17 +1,9 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendOTPEmail = async (email, otp, type = "login") => {
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  // 🔹 LOGIN OTP (simple)
+  // 🔹 LOGIN OTP TEMPLATE
   const loginTemplate = `
   <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:30px;">
     <div style="max-width:500px; margin:auto; background:white; border-radius:10px; padding:25px;">
@@ -33,10 +25,6 @@ const sendOTPEmail = async (email, otp, type = "login") => {
 
       <p>This OTP is valid for <b>5 minutes</b>.</p>
 
-      <p style="color:#777; font-size:13px;">
-        If you did not request this, please ignore this email.
-      </p>
-
       <hr />
       <p style="text-align:center; font-size:12px; color:#aaa;">
         © ${new Date().getFullYear()} Expense Tracker
@@ -45,38 +33,37 @@ const sendOTPEmail = async (email, otp, type = "login") => {
   </div>
   `;
 
-  // 🔹 FORGOT PASSWORD OTP (stylish)
+  // 🔹 RESET OTP TEMPLATE
   const resetTemplate = `
-    <div style="font-family: Arial; background:#0f172a; padding:20px;">
-      <div style="max-width:400px;margin:auto;background:#020617;
-        padding:20px;border-radius:10px;color:white">
-        <h2 style="color:#38bdf8;text-align:center">Reset Password OTP</h2>
-        <p>Hello 👋</p>
-        <p>Your OTP is:</p>
-        <h1 style="letter-spacing:6px;text-align:center">${otp}</h1>
-        <p style="font-size:13px;color:#94a3b8">
-          OTP valid for 5 minutes. Do not share it.
-        </p>
-      </div>
+  <div style="font-family: Arial; background:#0f172a; padding:20px;">
+    <div style="max-width:400px;margin:auto;background:#020617;
+      padding:20px;border-radius:10px;color:white">
+      <h2 style="color:#38bdf8;text-align:center">Reset Password OTP</h2>
+      <p>Hello 👋</p>
+      <p>Your OTP is:</p>
+      <h1 style="letter-spacing:6px;text-align:center">${otp}</h1>
+      <p style="font-size:13px;color:#94a3b8">
+        OTP valid for 5 minutes. Do not share it.
+      </p>
     </div>
+  </div>
   `;
 
   const isReset = type === "reset";
 
   try {
-    await transporter.sendMail({
-
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: "onboarding@resend.dev", // default sender (free plan)
       to: email,
       subject: isReset ? "Reset Password OTP" : "Login OTP",
       html: isReset ? resetTemplate : loginTemplate,
     });
-    console.log("Email sent successfully");
-  } catch (err) {
-    console.error("Email error:", err);
-    return res.status(500).json({ message: err.message });
-  }
 
+    console.log("✅ Email sent successfully via Resend");
+  } catch (error) {
+    console.error("❌ Resend Email Error:", error);
+    throw error; // important (route handle karega)
+  }
 };
 
 module.exports = sendOTPEmail;
