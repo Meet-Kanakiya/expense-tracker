@@ -1,68 +1,100 @@
-const sgMail = require("@sendgrid/mail");
+const Brevo = require("@getbrevo/brevo");
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const apiInstance = new Brevo.TransactionalEmailsApi();
 
-const sendOTPEmail = async (email, otp, type = "login") => {
-  const loginTemplate = `
-  <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:30px;">
-    <div style="max-width:500px; margin:auto; background:white; border-radius:10px; padding:25px;">
-      <h2 style="color:#2a5298; text-align:center;">🔐 OTP Verification</h2>
+apiInstance.setApiKey(
+  Brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
+// ================= WARNING EMAIL =================
+const sendWarningEmail = async (email, totalExpense, budget) => {
 
-      <p>Hello 👋,</p>
-      <p>Your One-Time Password (OTP) is:</p>
-
-      <div style="
-        font-size:28px;
-        letter-spacing:6px;
-        font-weight:bold;
-        color:#1e3c72;
-        text-align:center;
-        margin:20px 0;
-      ">
-        ${otp}
-      </div>
-
-      <p>This OTP is valid for <b>5 minutes</b>.</p>
-
-      <hr />
-      <p style="text-align:center; font-size:12px; color:#aaa;">
-        © ${new Date().getFullYear()} Expense Tracker
-      </p>
+  const htmlContent = `
+    <div style="font-family:Arial;padding:20px">
+      <h2 style="color:red;">⚠ Budget Warning</h2>
+      <p>You are close to exceeding your budget.</p>
+      <h3>Total Expense: ₹${totalExpense}</h3>
+      <h3>Budget: ₹${budget}</h3>
+      <p>Please control your expenses.</p>
     </div>
-  </div>
   `;
 
-  const resetTemplate = `
-  <div style="font-family: Arial; background:#0f172a; padding:20px;">
-    <div style="max-width:400px;margin:auto;background:#020617;
-      padding:20px;border-radius:10px;color:white">
-      <h2 style="color:#38bdf8;text-align:center">Reset Password OTP</h2>
-      <p>Hello 👋</p>
-      <p>Your OTP is:</p>
-      <h1 style="letter-spacing:6px;text-align:center">${otp}</h1>
-      <p style="font-size:13px;color:#94a3b8">
-        OTP valid for 5 minutes. Do not share it.
-      </p>
-    </div>
-  </div>
-  `;
-
-  const isReset = type === "reset";
-
-  const msg = {
-    to: email,
-    from: "smart.todo.system@gmail.com", // must match verified sender
-    subject: isReset ? "Reset Password OTP" : "Login OTP",
-    html: isReset ? resetTemplate : loginTemplate,
+  const sendSmtpEmail = {
+    sender: { email: process.env.EMAIL_FROM },
+    to: [{ email }],
+    subject: "⚠ Budget Limit Warning",
+    htmlContent,
   };
 
   try {
-    await sgMail.send(msg);
-    console.log("✅ Email sent successfully via SendGrid");
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("✅ Warning Email sent via Brevo");
   } catch (error) {
-    console.error("❌ SendGrid Error:", error.response?.body || error.message);
+    console.error("❌ Brevo Error:", error.response?.body || error.message);
+    throw error;
+  }
+};
+// ================= OTP EMAIL =================
+const sendOTPEmail = async (email, otp, type = "login") => {
+
+  const subject =
+    type === "reset"
+      ? "Reset Password OTP"
+      : "Login OTP";
+
+  const htmlContent = `
+    <div style="font-family:Arial;padding:20px">
+      <h2>OTP Verification</h2>
+      <h1 style="letter-spacing:5px">${otp}</h1>
+      <p>Valid for 5 minutes.</p>
+    </div>
+  `;
+
+  const sendSmtpEmail = {
+    sender: { email: process.env.EMAIL_FROM },
+    to: [{ email }],
+    subject,
+    htmlContent,
+  };
+
+  try {
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("✅ OTP Email sent via Brevo");
+  } catch (error) {
+    console.error("❌ Brevo Error:", error.response?.body || error.message);
     throw error;
   }
 };
 
-module.exports = sendOTPEmail;
+// ================= BUDGET EMAIL =================
+const sendBudgetEmail = async (email, budget) => {
+
+  const htmlContent = `
+    <div style="font-family:Arial;padding:20px">
+      <h2>Budget Updated 💰</h2>
+      <h3>Your new budget is ₹${budget}</h3>
+    </div>
+  `;
+
+  const sendSmtpEmail = {
+    sender: { email: process.env.EMAIL_FROM },
+    to: [{ email }],
+    subject: "Budget Updated Successfully",
+    htmlContent,
+  };
+
+  try {
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("✅ Budget Email sent via Brevo");
+  } catch (error) {
+    console.error("❌ Brevo Error:", error.response?.body || error.message);
+    return false; // do not crash server
+  
+    throw error;
+}
+
+console.log("BREVO KEY:", process.env.BREVO_API_KEY);
+console.log("EMAIL FROM:", process.env.EMAIL_FROM);
+};
+
+module.exports = { sendOTPEmail, sendBudgetEmail, sendWarningEmail };
