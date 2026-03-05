@@ -313,7 +313,7 @@ app.put("/set-budget", auth, async (req, res) => {
 
     // 🔹 Send Budget Email using Brevo
     try {
-      await sendBudgetEmail(user.email, budget);
+      await sendBudgetEmail(user.email, user.budget);
     } catch (err) {
       console.error("Budget email failed:", err.message);
     }
