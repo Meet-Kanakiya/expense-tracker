@@ -12,12 +12,12 @@ const checkExpenseLimit = async (user, totalIncome, totalExpense) => {
 
   if (percentage >= 80 && percentage < 100) {
     console.log("80% Warning Triggered");
-    await sendWarningEmail(user.email, percentage);
+    await sendWarningEmail(user.email, totalExpense ,user.budget);
   }
 
   if (percentage >= 100) {
     console.log("100% Limit Crossed");
-    await sendWarningEmail(user.email, percentage);
+    await sendWarningEmail(user.email, totalExpense ,user.budget);
   }
 };
 
