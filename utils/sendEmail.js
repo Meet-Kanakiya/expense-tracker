@@ -23,7 +23,7 @@ const emailLayout = (title, content) => {
       </div>
 
       <div style="background:#f3f4f6;padding:15px;text-align:center;font-size:12px;color:#777">
-        © ${new Date().getFullYear()} Expense Tracker System
+        © ${new Date().getFullYear()} Expense Tracker  
       </div>
 
     </div>

@@ -237,7 +237,7 @@ app.post("/add-expense", auth, async (req, res) => {
 
     await expense.save();
 
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.userId).select("email budget");
 
     // 🔹 Calculate total income
     const totalIncomeData = await Expense.aggregate([
@@ -297,30 +297,38 @@ app.put("/set-budget", auth, async (req, res) => {
   try {
     const { budget } = req.body;
 
-    if (!budget) {
+    if (budget === undefined || budget === null || budget === "") {
       return res.status(400).json({ message: "Budget is required" });
     }
 
-    const user = await User.findById(req.userId);
+    const budgetValue = parseFloat(budget);
+
+    if (isNaN(budgetValue)) {
+      return res.status(400).json({ message: "Invalid budget value" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { budget: budgetValue },
+      { new: true }
+    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 🔹 Update budget
-    user.budget = Number(budget);
-    await user.save();
+    // user.budget = budgetValue;
+    // await user.save();
 
-    // 🔹 Send Budget Email using Brevo
     try {
-      await sendBudgetEmail(user.email, user.budget);
+      await sendBudgetEmail(user.email, budgetValue);
     } catch (err) {
       console.error("Budget email failed:", err.message);
     }
 
     res.json({
       message: "Budget updated successfully",
-      budget,
+      budget: budgetValue,
     });
 
   } catch (error) {

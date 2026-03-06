@@ -2,22 +2,21 @@ const { sendWarningEmail } = require("./sendEmail");
 
 const checkExpenseLimit = async (user, totalIncome, totalExpense) => {
 
-  if (totalIncome === 0) return;
+  console.log("Budget:", user.budget);
+  console.log("Total Expense:", totalExpense);
 
-  const percentage = (totalExpense / totalIncome) * 100;
+  if (!user.budget || user.budget === 0) return;
 
-  console.log("Income:", totalIncome);
-  console.log("Expense:", totalExpense);
-  console.log("Percentage:", percentage);
+  const percentage = (totalExpense / user.budget) * 100;
 
   if (percentage >= 80 && percentage < 100) {
-    console.log("80% Warning Triggered");
-    await sendWarningEmail(user.email, totalExpense ,user.budget);
+    console.log("⚠ 80% Warning Triggered");
+    await sendWarningEmail(user.email, totalExpense, user.budget);
   }
 
   if (percentage >= 100) {
-    console.log("100% Limit Crossed");
-    await sendWarningEmail(user.email, totalExpense ,user.budget);
+    console.log("🚨 Budget Limit Crossed");
+    await sendWarningEmail(user.email, totalExpense, user.budget);
   }
 };
 
