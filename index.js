@@ -46,7 +46,7 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
 
     const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
     if (!passwordRegex.test(password)) {
       return res.status(400).json({
@@ -173,13 +173,15 @@ app.post("/api/verify-forgot-otp", async (req, res) => {
   const { email, otp } = req.body;
 
   const user = await User.findOne({ email });
-  if (
-    !user ||
-    user.otp !== otp ||
-    user.otpExpiry < Date.now()
-  ) {
+
+  if (!user || user.otp !== otp || user.otpExpiry < Date.now()) {
     return res.status(400).json({ message: "Invalid or expired OTP" });
   }
+
+  // ✅ OTP verified → remove it
+  user.otp = null;
+  user.otpExpiry = null;
+  await user.save();
 
   res.json({ message: "OTP verified" });
 });
@@ -199,7 +201,7 @@ app.post("/api/reset-password", async (req, res) => {
     }
 
     const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
