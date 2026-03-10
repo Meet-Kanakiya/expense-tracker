@@ -239,9 +239,8 @@ app.post("/add-expense", auth, async (req, res) => {
 
     await expense.save();
 
-    const user = await User.findById(req.userId).select("email budget");
+    const user = await User.findById(req.userId).select("email");
 
-    // 🔹 Calculate total income
     const totalIncomeData = await Expense.aggregate([
       { $match: { userId: user._id, type: "income" } },
       { $group: { _id: null, total: { $sum: "$amount" } } }
@@ -255,13 +254,12 @@ app.post("/add-expense", auth, async (req, res) => {
     const totalIncome = totalIncomeData[0]?.total || 0;
     const totalExpense = totalExpenseData[0]?.total || 0;
 
-    // if (totalIncome === 0) {
     await checkExpenseLimit(user, totalIncome, totalExpense);
-    // }
 
     res.json({ message: "Expense added" });
 
   } catch (error) {
+    console.error("ADD EXPENSE ERROR:", error);
     res.status(500).json({ message: "Error adding expense" });
   }
 });
